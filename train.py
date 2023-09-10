@@ -108,12 +108,15 @@ if __name__ == '__main__':
     global sample_rate
     global new_sample_rate
 
+    torchaudio.set_audio_backend("sox_io")
+
     new_sample_rate = 8000
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = "cpu"
 
     batch_size = 256
+    n_epoch = 5
 
     if device == "cuda":
         num_workers = 1
@@ -158,7 +161,6 @@ if __name__ == '__main__':
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
     log_interval = 20
-    n_epoch = 5
 
     pbar_update = 1 / (len(train_loader) + len(test_loader))
     losses = []
@@ -169,10 +171,9 @@ if __name__ == '__main__':
         for epoch in range(1, n_epoch + 1):
             train(model, epoch, log_interval)
             torch.save({
-                'epoch': n_epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-            }, "./ckpt/SGD_ckpt_epoch{}.pt".format(epoch))
+            }, "./ckpt/SGD_ckpt_epoch{}.pth".format(epoch))
             # save the ckpt
             test(model, epoch, sample_rate, new_sample_rate)
             scheduler.step()

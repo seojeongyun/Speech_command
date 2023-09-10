@@ -25,7 +25,7 @@ if __name__ == '__main__':
         pin_memory = False
 
     test_set = SubsetSC("testing")
-
+    labels = sorted(list(set(datapoint[2] for datapoint in test_set)))
     test_loader = torch.utils.data.DataLoader(
         test_set,
         batch_size=batch_size,
@@ -36,8 +36,8 @@ if __name__ == '__main__':
         pin_memory=pin_memory,
     )
 
-    model = M5(n_input=len(test_set[0][0]), n_output=35)
-    weight = torch.load('./ckpt/SGD_ckpt_{}.pt'.format(select_epoch), map_location=device)
+    model = M5(n_input=len(test_set[0][0]), n_output=len(labels))
+    weight = torch.load('/home/jysuh/PycharmProjects/Speech_command/ckpt/SGD_ckpt_epoch{}.pth'.format(select_epoch), map_location=device)
     model.load_state_dict(weight)
 
     with torch.no_grad():
