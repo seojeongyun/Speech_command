@@ -1,3 +1,5 @@
+import os.path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -125,7 +127,10 @@ if __name__ == '__main__':
 
     waveform, sample_rate, label, speaker_id, utterance_number = train_set[0]
     labels = sorted(list(set(datapoint[2] for datapoint in train_set)))
+    # sorted all labels
+
     transformed_waveform = downsample(waveform, sample_rate, new_sample_rate)
+    # transform data through downdampling function
 
     train_loader = torch.utils.data.DataLoader(
         train_set,
@@ -148,11 +153,12 @@ if __name__ == '__main__':
     model = M5(n_input=transformed_waveform.shape[0], n_output=len(labels))
     model.to(device)
 
-    optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=0.001)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
     log_interval = 20
-    n_epoch = 60
+    n_epoch = 5
 
     pbar_update = 1 / (len(train_loader) + len(test_loader))
     losses = []
@@ -162,6 +168,12 @@ if __name__ == '__main__':
     with tqdm(total=n_epoch) as pbar:
         for epoch in range(1, n_epoch + 1):
             train(model, epoch, log_interval)
+            torch.save({
+                'epoch': n_epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+            }, "./ckpt/SGD_ckpt_epoch{}.pt".format(epoch))
+            # save the ckpt
             test(model, epoch, sample_rate, new_sample_rate)
             scheduler.step()
 

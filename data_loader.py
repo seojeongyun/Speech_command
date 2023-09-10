@@ -14,9 +14,10 @@ class SubsetSC(SPEECHCOMMANDS): # Data loader
         super().__init__("/storage/jysuh/", download=True)
 
         def load_list(filename):
-            filepath = os.path.join(self._path, filename)
-            with open(filepath) as fileobj:
-                return [os.path.normpath(os.path.join(self._path, line.strip())) for line in fileobj]
+            filepath = os.path.join(self._path, filename) # Combine self._path and filename
+            with open(filepath) as fileobj: # open the file in filepath as fileobj
+                return [os.path.normpath(os.path.join(self._path, line.strip())) for line in fileobj] # load data
+                # ex '/storage/jysuh/SpeechCommands/speech_commands_v0.02/cat/32ad5b65_nohash_0.wav'
 
         if subset == "validation":
             self._walker = load_list("validation_list.txt")
@@ -29,10 +30,11 @@ class SubsetSC(SPEECHCOMMANDS): # Data loader
 
 if __name__ == '__main__':
     # Create training and testing split of the data. We do not use validation in this tutorial.
-    train_set = SubsetSC("training")
-    test_set = SubsetSC("testing")
+    train_set = SubsetSC("training") # load train_set from SubsetSC
+    test_set = SubsetSC("testing") # load test_set from SubsetSC
 
     waveform, sample_rate, label, speaker_id, utterance_number = train_set[0]
+    # train_set is composed of waveform, sample_rate, label, speaker_id, utterance_number
 
     print("Shape of waveform: {}".format(waveform.size()))
     print("Sample rate of waveform: {}".format(sample_rate))
