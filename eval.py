@@ -3,12 +3,38 @@ import torch
 from model import M5
 from data_loader import SubsetSC
 from train import collate_fn
-from function import downsample, get_likely_index, number_of_correct
+from function import downsample, get_likely_index, number_of_correct, pad_sequence
+
+def collate_fn(batch):
+    # A data tuple has the form:
+    # waveform, sample_rate, label, speaker_id, utterance_number
+    tensors, targets = [], []
+
+    # Gather in lists, and encode labels as indices
+    for waveform, _, label, *_ in batch:
+        tensors += [waveform]
+        targets += [label_to_index(label)]
+
+    # Group the list of tensors into a batched tensor
+    tensors = pad_sequence(tensors)
+    targets = torch.stack(targets)
+
+    return tensors, targets
+
+def label_to_index(word):
+    # Return the position of the word in labels
+    return torch.tensor(labels.index(word))
+
+
+def index_to_label(index):
+    # Return the word corresponding to the index in labels
+    # This is the inverse of label_to_index
+    return labels[index]
 
 if __name__ == '__main__':
     global sample_rate
     global new_sample_rate
-
+    sample_rate = 16000
     new_sample_rate = 8000
     batch_size = 256
     select_epoch = 5

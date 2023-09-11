@@ -112,11 +112,13 @@ if __name__ == '__main__':
 
     new_sample_rate = 8000
 
+    opt_name = "SGD"
+    select_epoch = 1
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = "cpu"
 
     batch_size = 256
-    n_epoch = 5
+    n_epoch = 1
 
     if device == "cuda":
         num_workers = 1
@@ -154,10 +156,13 @@ if __name__ == '__main__':
     )
 
     model = M5(n_input=transformed_waveform.shape[0], n_output=len(labels))
+    weight = torch.load('/home/jysuh/PycharmProjects/Speech_command/ckpt/{}_ckpt_epoch{}.pth'.format(opt_name, select_epoch), map_location=device)['model_state_dict']
+    model.load_state_dict(weight)
+
     model.to(device)
 
-    # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.001)
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=0.0001)
+    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.8)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
 
     log_interval = 20
@@ -170,6 +175,7 @@ if __name__ == '__main__':
     with tqdm(total=n_epoch) as pbar:
         for epoch in range(1, n_epoch + 1):
             train(model, epoch, log_interval)
+            # torch.save(model.state_dict(), "./ckpt/Adam_ckpt_epoch{}.pth".format(epoch))
             torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
