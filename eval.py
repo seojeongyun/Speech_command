@@ -1,4 +1,5 @@
 import torch
+import torchaudio
 
 from model import M5
 from data_loader import SubsetSC
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     sample_rate = 16000
     new_sample_rate = 8000
     batch_size = 256
-    select_epoch = 5
+    select_epoch = 25
     correct = 0
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -63,19 +64,30 @@ if __name__ == '__main__':
     )
 
     model = M5(n_input=len(test_set[0][0]), n_output=len(labels))
-    weight = torch.load('/home/jysuh/PycharmProjects/Speech_command/ckpt/SGD_ckpt_epoch{}.pth'.format(select_epoch), map_location=device)
+    weight = torch.load('/home/jysuh/PycharmProjects/Speech_command/ckpt/Adam_ckpt_epoch{}.pth'.format(select_epoch), map_location=device)
     model.load_state_dict(weight)
+
+    # with torch.no_grad():
+    #     model.eval()
+    #     for data, target in test_loader:
+    #         data = data.to(device)
+    #         target = target.to(device)
+    #
+    #         # apply transform and model on whole batch directly on device
+    #         data = downsample(data, sample_rate, new_sample_rate)
+    #         output = model(data)
+    #
+    #         pred = get_likely_index(output)
+    #         correct += number_of_correct(pred, target)
+    # print(f"\nAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
 
     with torch.no_grad():
         model.eval()
-        for data, target in test_loader:
-            data = data.to(device)
-            target = target.to(device)
+        data, sample_rate = torchaudio.load("/home/jysuh/Downloads/last.wav")
 
-            # apply transform and model on whole batch directly on device
-            data = downsample(data, sample_rate, new_sample_rate)
-            output = model(data)
+        # apply transform and model on whole batch directly on device
+        data = downsample(data, sample_rate, new_sample_rate)
+        output = model(data)
 
-            pred = get_likely_index(output)
-            correct += number_of_correct(pred, target)
-    print(f"\nAccuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.0f}%)\n")
+        pred = get_likely_index(output)
+        print(pred)
